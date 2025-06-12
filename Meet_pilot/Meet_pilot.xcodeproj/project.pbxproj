@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		C167276B2DFA512B00E3632A /* Todo.md in Resources */ = {isa = PBXBuildFile; fileRef = C167276A2DFA512B00E3632A /* Todo.md */; };
 		C167276E2DFA5ABC00E3632A /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C167276D2DFA5ABC00E3632A /* FSCalendar */; };
+		C16729082DFA932800E3632A /* RxFlow in Frameworks */ = {isa = PBXBuildFile; productRef = C16729072DFA932800E3632A /* RxFlow */; };
+		C167290B2DFA933300E3632A /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = C167290A2DFA933300E3632A /* ReactorKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +44,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C16729082DFA932800E3632A /* RxFlow in Frameworks */,
+				C167290B2DFA933300E3632A /* ReactorKit in Frameworks */,
 				C167276E2DFA5ABC00E3632A /* FSCalendar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,6 +91,8 @@
 			name = Meet_pilot;
 			packageProductDependencies = (
 				C167276D2DFA5ABC00E3632A /* FSCalendar */,
+				C16729072DFA932800E3632A /* RxFlow */,
+				C167290A2DFA933300E3632A /* ReactorKit */,
 			);
 			productName = Meet_pilot;
 			productReference = C1FD8D942DF97A18005711EC /* Meet_pilot.app */;
@@ -118,6 +124,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C167276C2DFA5ABC00E3632A /* XCRemoteSwiftPackageReference "FSCalendar" */,
+				C16729062DFA932800E3632A /* XCRemoteSwiftPackageReference "RxFlow" */,
+				C16729092DFA933300E3632A /* XCRemoteSwiftPackageReference "ReactorKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C1FD8D952DF97A18005711EC /* Products */;
@@ -366,6 +374,22 @@
 				minimumVersion = 2.8.4;
 			};
 		};
+		C16729062DFA932800E3632A /* XCRemoteSwiftPackageReference "RxFlow" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxFlow";
+			requirement = {
+				kind = exactVersion;
+				version = 2.13.2;
+			};
+		};
+		C16729092DFA933300E3632A /* XCRemoteSwiftPackageReference "ReactorKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactorKit/ReactorKit";
+			requirement = {
+				kind = exactVersion;
+				version = 3.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -373,6 +397,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C167276C2DFA5ABC00E3632A /* XCRemoteSwiftPackageReference "FSCalendar" */;
 			productName = FSCalendar;
+		};
+		C16729072DFA932800E3632A /* RxFlow */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C16729062DFA932800E3632A /* XCRemoteSwiftPackageReference "RxFlow" */;
+			productName = RxFlow;
+		};
+		C167290A2DFA933300E3632A /* ReactorKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C16729092DFA933300E3632A /* XCRemoteSwiftPackageReference "ReactorKit" */;
+			productName = ReactorKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
