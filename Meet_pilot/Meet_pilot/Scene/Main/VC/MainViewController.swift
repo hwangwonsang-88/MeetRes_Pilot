@@ -20,7 +20,7 @@ final class MainViewController: UIViewController, View {
     private let dimmingView: UIView = UIView()
     private let calendar = FSCalendar()
     private var calendarHeightConstant: NSLayoutConstraint!
-    private let tableView = UITableView()
+    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
     private lazy var resBtn: UIButton = { [unowned self] in
         let btn = UIButton(type: .system)
@@ -28,10 +28,10 @@ final class MainViewController: UIViewController, View {
         btn.setTitleColor(.white, for: .normal)
         btn.backgroundColor = .systemBlue.withAlphaComponent(0.6)
         btn.layer.cornerRadius = 10
-        btn.addTarget(self, action: #selector(tapResBtn), for: .touchUpInside)
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
+    
     
     var disposeBag = DisposeBag()
     
@@ -50,9 +50,20 @@ final class MainViewController: UIViewController, View {
     
     func bind(reactor: MainViewModel) {
         
+        calendar.rx.didSelectDate
+            .subscribe { date in
+                print(123)
+                print(date)
+            }
+        
+        calendar.rx.boundingRectWillChange
+            .subscribe { [weak self] bounds in
+                self?.calendarHeightConstant.constant = bounds.height
+                                self?.view.layoutIfNeeded()
+            }
+        
         resBtn.rx.tap
             .subscribe { _ in
-                print(123)
             }
             .disposed(by: disposeBag)
         
@@ -62,7 +73,7 @@ final class MainViewController: UIViewController, View {
             .disposed(by: disposeBag)
     }
     
-    private func configureTableView() {
+    private func configureCollectionView() {
         
     }
     
@@ -79,8 +90,8 @@ final class MainViewController: UIViewController, View {
     
     private func configureCalendar() {
         // 앞으로 배치
-        calendar.dataSource = self
-        calendar.delegate = self
+//        calendar.dataSource = self
+//        calendar.delegate = self
         calendar.scope = .week
         calendar.backgroundColor = .white
     
@@ -218,17 +229,17 @@ final class MainViewController: UIViewController, View {
 }
 
 
-extension MainViewController: FSCalendarDataSource, FSCalendarDelegate {
-    func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
-        // input action
-        print(date)
-        
-        if calendar.scope == .month {
-            calendar.scope = .week
-        }
-    }
-    
-    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
-        calendarHeightConstant.constant = bounds.height
-    }
-}
+//extension MainViewController: FSCalendarDataSource, FSCalendarDelegate {
+//    func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
+//        // input action
+//        print(date)
+//        
+//        if calendar.scope == .month {
+//            calendar.scope = .week
+//        }
+//    }
+//    
+//    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
+//        calendarHeightConstant.constant = bounds.height
+//    }
+//}

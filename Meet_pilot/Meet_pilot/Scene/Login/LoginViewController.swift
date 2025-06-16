@@ -6,14 +6,24 @@
 //
 
 import UIKit
+import ReactorKit
 
-final class LoginViewController: UIViewController {
+final class LoginViewController: UIViewController, View {
+    
+    var disposeBag: DisposeBag = .init()
+    
+    func bind(reactor: LoginViewModel) {
+        loginBtn.rx.tap
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .map { LoginViewModel.Action.tapLoginBtn }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)   
+    }
     
     private lazy var loginBtn: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setImage(UIImage(systemName: "wave.3.right.circle.fill"), for: .normal)
+        btn.setTitle("로그인", for: .normal)
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(tapLoginBtn), for: .touchUpInside)
         return btn
     }()
     
@@ -25,10 +35,5 @@ final class LoginViewController: UIViewController {
             loginBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginBtn.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-    }
-    
-    @objc
-    private func tapLoginBtn() {
-        
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -20,6 +21,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let vm = MainViewModel()
         let main = MainViewController()
+        
+        let login = LoginViewController()
+        login.reactor = LoginViewModel()
+        
         main.reactor = vm
         let nav = UINavigationController(rootViewController: main)
         
@@ -56,6 +61,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+             let _ = GIDSignIn.sharedInstance.handle(url)
+    }
 
 }
 

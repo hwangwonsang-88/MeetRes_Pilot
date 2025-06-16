@@ -1,0 +1,61 @@
+//
+//  LoginViewModel.swift
+//  Meet_pilot
+//
+//  Created by 인스웨이브 on 6/16/25.
+//
+
+import Foundation
+import ReactorKit
+import RxRelay
+import RxFlow
+
+// 로그인 -> 성공 -> 화면이동 실패 -> Alert
+
+final class LoginViewModel: Reactor, Stepper {
+    var steps: RxRelay.PublishRelay<Step> = .init()
+    var disposeBag = DisposeBag()
+    
+    weak var vc: LoginViewController?
+    
+    enum Action {
+        case tapLoginBtn
+    }
+    
+    enum Mutation {
+        case signIn
+        case setAlertMessage(String)
+    }
+    
+    struct State {
+        @Pulse var errorMsg: String? = nil
+    }
+    
+    var initialState: State = State()
+    
+    func mutate(action: Action) -> Observable<Mutation> {
+        switch action {
+        case .tapLoginBtn:
+            return WGoogleLoginService.shared.singIn()
+                .map { Mutation.signIn }
+                .asObservable()
+                .catch(handleError)
+        }
+    }
+    
+    func reduce(state: State, mutation: Mutation) -> State {
+        var state = state
+        switch mutation {
+        case .setAlertMessage(let string):
+            state.errorMsg = string
+        default:
+            break
+        }
+        
+        return state
+    }
+    
+    private func handleError(with error: any Error) -> Observable<Mutation> {
+        return Observable.just(.setAlertMessage("에러입니다.\n" + error.localizedDescription))
+    }
+}
