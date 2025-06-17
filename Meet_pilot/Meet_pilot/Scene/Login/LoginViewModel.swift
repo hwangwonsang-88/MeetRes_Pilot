@@ -24,22 +24,26 @@ final class LoginViewModel: Reactor, Stepper {
     
     enum Mutation {
         case signIn
+        case fetchMeetingRooms(MeetingRooms)
         case setAlertMessage(String)
     }
     
     struct State {
         @Pulse var errorMsg: String? = nil
+        @Pulse var isSignedIn: Bool = false
     }
-    
+
     var initialState: State = State()
     
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         case .tapLoginBtn:
-            return WGoogleLoginService.shared.singIn()
-                .map { Mutation.signIn }
-                .asObservable()
-                .catch(handleError)
+            return Observable.concat([
+                WGoogleLoginService.shared.singIn()
+                    .map { Mutation.signIn }
+                    .asObservable()
+                    .catch(handleError),
+            ])
         }
     }
     
@@ -48,6 +52,8 @@ final class LoginViewModel: Reactor, Stepper {
         switch mutation {
         case .setAlertMessage(let string):
             state.errorMsg = string
+        case .signIn:
+            state.isSignedIn = true
         default:
             break
         }
@@ -55,6 +61,15 @@ final class LoginViewModel: Reactor, Stepper {
         return state
     }
     
+    
+    func transform(state: Observable<State>) -> Observable<State> {
+        return state.do { state in
+            if state.isSignedIn {
+        
+            }
+        }
+    }
+
     private func handleError(with error: any Error) -> Observable<Mutation> {
         return Observable.just(.setAlertMessage("에러입니다.\n" + error.localizedDescription))
     }

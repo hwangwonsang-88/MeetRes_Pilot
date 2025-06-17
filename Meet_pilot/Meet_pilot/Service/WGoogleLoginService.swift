@@ -45,9 +45,14 @@ final class WGoogleLoginService {
         
     }
     
-    func hasSignedIn() -> Bool {
-        
-        
-        return false
+    func hasSignedIn() -> Observable<Bool> {
+        return Observable.create { emitter in
+            if GIDSignIn.sharedInstance.currentUser != nil {
+                emitter.onNext(true)
+            } else {
+                emitter.onNext(false)
+            }
+            return Disposables.create()
+        }
     }
 }

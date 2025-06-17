@@ -48,6 +48,11 @@ final class MainViewController: UIViewController, View {
     }
     
     func bind(reactor: MainViewModel) {
+        
+        self.rx.viewWillAppear
+            .map { Reactor.Action.startInit }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
     
         calendar.rx.tapDate
             .map { Reactor.Action.tapCalendar($0) }
@@ -72,8 +77,10 @@ final class MainViewController: UIViewController, View {
             .disposed(by: disposeBag)
         
         // dropbox 메뉴 binding
-        
-        
+        reactor.pulse(\.$meetingRooms)
+            .subscribe { rooms in
+                print(rooms)
+            }
     }
     
     private func configureTableView() {
