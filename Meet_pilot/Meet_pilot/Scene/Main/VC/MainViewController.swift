@@ -22,7 +22,7 @@ final class MainViewController: UIViewController, View {
     private var calendarHeightConstant: NSLayoutConstraint!
     private let tableView = UITableView()
     
-    private lazy var resBtn: UIButton = { [unowned self] in
+    private lazy var resBtn: UIButton = {
         let btn = UIButton(type: .system)
         btn.setTitle("예약하기", for: .normal)
         btn.setTitleColor(.white, for: .normal)
@@ -32,7 +32,6 @@ final class MainViewController: UIViewController, View {
         return btn
     }()
     
-    
     var disposeBag = DisposeBag()
     
     override func viewDidLoad() {
@@ -40,12 +39,6 @@ final class MainViewController: UIViewController, View {
         view.backgroundColor = .white
         configureUI()
         configureCalendar()
-        
-        calendar.rx.swipe
-            .subscribe { [weak self] g in
-                self?.calendarHeightConstant.constant = g.element!.height
-            }
-            .disposed(by: disposeBag)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -77,6 +70,10 @@ final class MainViewController: UIViewController, View {
         reactor.pulse(\.$title)
             .bind(to: navigationItem.rx.title)
             .disposed(by: disposeBag)
+        
+        // dropbox 메뉴 binding
+        
+        
     }
     
     private func configureTableView() {
@@ -124,6 +121,12 @@ final class MainViewController: UIViewController, View {
                     calendar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                     calendarHeightConstant
                 ])
+        
+        calendar.rx.swipe
+            .subscribe { [weak self] g in
+                self?.calendarHeightConstant.constant = g.element!.height
+            }
+            .disposed(by: disposeBag)
     }
     
     @objc

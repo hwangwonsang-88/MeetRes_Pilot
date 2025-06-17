@@ -16,6 +16,7 @@ final class MainViewModel: Reactor {
         case tapSideMenu(String)
         case tapResBtn
         case tapCell
+        case tapDropbox(MeetingRoom)
     }
     
     enum Mutation {
@@ -27,6 +28,7 @@ final class MainViewModel: Reactor {
         @Pulse var title: String = "회의실 현황"
         @Pulse var error: Error?
         @Pulse var currentDate: Date?
+        @Pulse var currentMeetingRoom: MeetingRoom?
     }
     
     let initialState: State = State()

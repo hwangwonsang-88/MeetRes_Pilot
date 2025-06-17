@@ -37,7 +37,10 @@ final class LoginViewController: UIViewController, View {
     
     @objc
     func test() {
-        WGoogleCalendarService.shared.fetchCalendarEvent(date: .now)
+//        WGoogleCalendarService.shared.fetchCalendarEvent(date: .now)
+        WGoogleCalendarService.shared.fetchMeetingRooms { result in
+            
+        }
     }
     
     override func viewDidLoad() {
