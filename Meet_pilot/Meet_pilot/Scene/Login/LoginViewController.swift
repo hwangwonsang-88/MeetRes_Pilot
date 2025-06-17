@@ -27,13 +27,31 @@ final class LoginViewController: UIViewController, View {
         return btn
     }()
     
+    private lazy var testbu: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setTitle("test", for: .normal)
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.addTarget(self, action: #selector(test), for: .touchUpInside)
+        return btn
+    }()
+    
+    @objc
+    func test() {
+        WGoogleCalendarService.shared.fetchCalendarEvent(date: .now)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.addSubview(testbu)
         
         view.addSubview(loginBtn)
         NSLayoutConstraint.activate([
             loginBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loginBtn.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            loginBtn.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            testbu.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            testbu.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
 }

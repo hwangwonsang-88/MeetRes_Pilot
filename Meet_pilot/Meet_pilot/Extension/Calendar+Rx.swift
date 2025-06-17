@@ -8,47 +8,42 @@
 import RxSwift
 import RxCocoa
 import FSCalendar
-//
-//// MARK: - FSCalendarRxWrapper
-//class FSCalendarRxWrapper: NSObject, FSCalendarDelegate {
-//    
-//    let didSelectDate = PublishSubject<Date>()
-//    let boundingRectWillChange = PublishSubject<CGRect>()
-//    
-//    func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
-//        didSelectDate.onNext(date)
-//    }
-//    
-//    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
-//        boundingRectWillChange.onNext(bounds)
-//    }
-//}
-//
-//// MARK: - Reactive Extension
-//extension Reactive where Base: FSCalendar {
-//    
-//    var calendarDelegate: FSCalendarRxWrapper {
-//        return synchronizedBag {
-//            if let delegate = objc_getAssociatedObject(base, &AssociatedKeys.delegate) as? FSCalendarRxWrapper {
-//                return delegate
-//            }
-//            
-//            let delegate = FSCalendarRxWrapper()
-//            objc_setAssociatedObject(base, &AssociatedKeys.delegate, delegate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-//            base.delegate = delegate
-//            return delegate
-//        }
-//    }
-//    
-//    var didSelectDate: Observable<Date> {
-//        return calendarDelegate.didSelectDate.asObservable()
-//    }
-//    
-//    var boundingRectWillChange: Observable<CGRect> {
-//        return calendarDelegate.boundingRectWillChange.asObservable()
-//    }
-//}
-//
-//private struct AssociatedKeys {
-//    static var delegate = "rx_delegate"
-//}
+
+extension FSCalendar: @retroactive HasDelegate {
+    public typealias Delegate = FSCalendarDelegate
+}
+
+class RXFSCalendarDelegateProxy: DelegateProxy<FSCalendar, FSCalendarDelegate>, DelegateProxyType, FSCalendarDelegate {
+    
+    weak private var calendar: FSCalendar?
+    
+    init(calendar: FSCalendar) {
+        self.calendar = calendar
+        super.init(parentObject: calendar, delegateProxy: RXFSCalendarDelegateProxy.self)
+    }
+    
+    static func registerKnownImplementations() {
+        self.register { RXFSCalendarDelegateProxy(calendar: $0) }
+    }
+}
+
+extension Reactive where Base: FSCalendar {
+    var delegate: DelegateProxy<FSCalendar, FSCalendarDelegate> {
+        return RXFSCalendarDelegateProxy.proxy(for: base)
+    }
+    
+      var tapDate: Observable<Date> {
+          return delegate.methodInvoked(#selector(FSCalendarDelegate.calendar(_:didSelect:at:)))
+              .map { parameters in
+                  // parameters[1]이 선택된 Date 객체
+                  return parameters[1] as! Date
+              }
+      }
+    
+    var swipe: Observable<CGRect> {
+        return delegate.methodInvoked(#selector(FSCalendarDelegate.calendar(_:boundingRectWillChange:animated:)))
+            .map { param in
+                return param[1] as! CGRect
+            }
+    }
+}

@@ -20,7 +20,7 @@ final class MainViewController: UIViewController, View {
     private let dimmingView: UIView = UIView()
     private let calendar = FSCalendar()
     private var calendarHeightConstant: NSLayoutConstraint!
-    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    private let tableView = UITableView()
     
     private lazy var resBtn: UIButton = { [unowned self] in
         let btn = UIButton(type: .system)
@@ -40,6 +40,12 @@ final class MainViewController: UIViewController, View {
         view.backgroundColor = .white
         configureUI()
         configureCalendar()
+        
+        calendar.rx.swipe
+            .subscribe { [weak self] g in
+                self?.calendarHeightConstant.constant = g.element!.height
+            }
+            .disposed(by: disposeBag)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -49,18 +55,18 @@ final class MainViewController: UIViewController, View {
     }
     
     func bind(reactor: MainViewModel) {
-        
-        calendar.rx.didSelectDate
-            .subscribe { date in
-                print(123)
-                print(date)
-            }
-        
-        calendar.rx.boundingRectWillChange
-            .subscribe { [weak self] bounds in
-                self?.calendarHeightConstant.constant = bounds.height
-                                self?.view.layoutIfNeeded()
-            }
+    
+        calendar.rx.tapDate
+            .map { Reactor.Action.tapCalendar($0) }
+            .startWith(Reactor.Action.tapCalendar(.now))
+            .do(onNext: { [weak self] _ in
+                guard let self = self else { return }
+                if self.calendar.scope == .month {
+                    self.calendar.scope = .week
+                }
+            })
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
         
         resBtn.rx.tap
             .subscribe { _ in
@@ -73,7 +79,7 @@ final class MainViewController: UIViewController, View {
             .disposed(by: disposeBag)
     }
     
-    private func configureCollectionView() {
+    private func configureTableView() {
         
     }
     
@@ -90,8 +96,6 @@ final class MainViewController: UIViewController, View {
     
     private func configureCalendar() {
         // 앞으로 배치
-//        calendar.dataSource = self
-//        calendar.delegate = self
         calendar.scope = .week
         calendar.backgroundColor = .white
     
@@ -120,11 +124,6 @@ final class MainViewController: UIViewController, View {
                     calendar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                     calendarHeightConstant
                 ])
-    }
-    
-    @objc
-    private func tapResBtn() {
-        
     }
     
     @objc
@@ -228,18 +227,6 @@ final class MainViewController: UIViewController, View {
     }
 }
 
-
-//extension MainViewController: FSCalendarDataSource, FSCalendarDelegate {
-//    func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
-//        // input action
-//        print(date)
-//        
-//        if calendar.scope == .month {
-//            calendar.scope = .week
-//        }
-//    }
-//    
-//    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
-//        calendarHeightConstant.constant = bounds.height
-//    }
-//}
+extension MainViewController {
+    
+}

@@ -12,7 +12,7 @@ import RxSwift
 final class MainViewModel: Reactor {
     
     enum Action {
-        case tapCalendar(String)
+        case tapCalendar(Date)
         case tapSideMenu(String)
         case tapResBtn
         case tapCell
@@ -20,13 +20,13 @@ final class MainViewModel: Reactor {
     
     enum Mutation {
         case fetchCalendarInfo // Google Calendar API
-        
+        case changeDate(Date)
     }
     
     struct State {
-        @Pulse var title: String = "예약"
+        @Pulse var title: String = "회의실 현황"
         @Pulse var error: Error?
-        // 예약 data
+        @Pulse var currentDate: Date?
     }
     
     let initialState: State = State()
