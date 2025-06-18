@@ -27,11 +27,11 @@ final class LoginFlow: Flow {
             self.rootVC.pushViewController(vc, animated: true)
             return .one(flowContributor: .contribute(withNextPresentable: vc,
                                                      withNextStepper: vm))
-        case .loginIsCompleted:
-            return .end(forwardToParentFlowWithStep: PilotStep.mainIsRequired)
+        case .loginIsCompleted(let meetingRooms):
+            return .end(forwardToParentFlowWithStep: PilotStep.mainIsRequired(meetingRooms))
+            
         default:
             return .none
         }
     }
-    
 }

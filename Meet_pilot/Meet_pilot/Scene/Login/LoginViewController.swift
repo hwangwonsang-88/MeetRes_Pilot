@@ -26,63 +26,18 @@ final class LoginViewController: UIViewController, View {
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
-    
-    private lazy var testbu: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle("test", for: .normal)
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.addTarget(self, action: #selector(test), for: .touchUpInside)
-        return btn
-    }()
-    
-    @objc
-    func test() {
-//        WGoogleCalendarService.shared.fetchCalendarEvent(date: .now)
-    }
-    
-    private let dataSource = ["삼양라면", "신라면", "참깨라면", "열라면", "왕뚜껑"]
-    private let dropDownButton = DropDownButton(title: "선택해주세요", option: .title)
-    private lazy var dropDownView = DropDownView(anchorView: dropDownButton)
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        view.endEditing(true)
-    }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
-        
-        dropDownView.dataSource = dataSource
-        dropDownView.delegate = self
-        
-        view.addSubview(dropDownView)
-        dropDownView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            dropDownView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            dropDownView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            dropDownView.widthAnchor.constraint(equalToConstant: 200),
-            dropDownView.heightAnchor.constraint(equalToConstant: 40)
-        ])
+        configureUI()
     }
     
     private func configureUI() {
-        view.addSubview(testbu)
-        
         view.addSubview(loginBtn)
         NSLayoutConstraint.activate([
             loginBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginBtn.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            testbu.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            testbu.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
-    }
-}
-
-extension LoginViewController: DropDownDelegate {
-    func dropDown(_ dropDownView: DropDownView, didSelectRowAt indexPath: IndexPath) {
-        let title = dropDownView.dataSource[indexPath.row]
-        dropDownButton.setTitle(title, for: .option)
     }
 }

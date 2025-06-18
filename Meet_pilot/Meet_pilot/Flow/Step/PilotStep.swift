@@ -11,7 +11,7 @@ enum PilotStep: Step {
     case dismiss
     
     case loginIsRequired
-    case loginIsCompleted
+    case loginIsCompleted(MeetingRooms)
     
-    case mainIsRequired
+    case mainIsRequired(MeetingRooms)
 }

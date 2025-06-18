@@ -21,19 +21,21 @@ final class WGoogleCalendarService {
     }
     
     func fetchMeetingRooms() -> Single<MeetingRooms> {
-        
         return Single.create { [weak self] single in
+            print("start")
             let query = GTLRCalendarQuery_CalendarListList.query()
             
             self?.core.executeQuery(query) { (ticket, result, error) in
                 if let error = error {
                     print("Error fetching calendar list: \(error)")
+                    print("meetingroom in error1")
                     single(.failure(NSError(domain: "MeetingRoomError", code: 33000)))
                     return
                 }
                 
                 guard let calendarList = result as? GTLRCalendar_CalendarList,
                       let calendars = calendarList.items else {
+                    print("meetingroom in error2")
                     single(.failure(NSError(domain: "MeetingRoomError", code: 33000)))
                     return
                 }
@@ -49,9 +51,8 @@ final class WGoogleCalendarService {
                     return nil
                 }.sorted { $0.name < $1.name }
                 
-                let result = MeetingRooms(data: meetingRooms)
-                single(.success(result))
-                print("fetching meetingrooms done")
+                print("meetingroom in done")
+                single(.success(MeetingRooms(data: meetingRooms)))
             }
             return Disposables.create()
         }

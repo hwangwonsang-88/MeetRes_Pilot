@@ -34,6 +34,7 @@ final class WGoogleLoginService {
                 let auth = user.accessToken
                 
                 WGoogleCalendarService.shared.setAuth(by: user)
+                print("sign in done")
                 return single(.success(()))
                 
             }
@@ -49,6 +50,7 @@ final class WGoogleLoginService {
         return Observable.create { emitter in
             if GIDSignIn.sharedInstance.currentUser != nil {
                 emitter.onNext(true)
+                emitter.onCompleted()
             } else {
                 emitter.onNext(false)
             }

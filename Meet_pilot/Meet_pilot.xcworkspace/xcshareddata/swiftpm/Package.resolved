@@ -1,5 +1,5 @@
 {
-  "originHash" : "e4afad962ec59c3ac7384cb55175d0606fa85c10efdfbe70a5855802dce38791",
+  "originHash" : "524afb9d513132da933c77870c1f093dee42fc4e31cecbadb81063c4b40a57fb",
   "pins" : [
     {
       "identity" : "app-check",
@@ -92,15 +92,6 @@
       }
     },
     {
-      "identity" : "rxdatasources",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/RxSwiftCommunity/RxDataSources",
-      "state" : {
-        "revision" : "90c29b48b628479097fe775ed1966d75ac374518",
-        "version" : "5.0.2"
-      }
-    },
-    {
       "identity" : "rxflow",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RxSwiftCommunity/RxFlow",
@@ -112,7 +103,7 @@
     {
       "identity" : "rxswift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ReactiveX/RxSwift.git",
+      "location" : "https://github.com/ReactiveX/RxSwift",
       "state" : {
         "revision" : "5dd1907d64f0d36f158f61a466bab75067224893",
         "version" : "6.9.0"

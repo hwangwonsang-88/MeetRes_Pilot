@@ -11,6 +11,7 @@ import RxFlow
 
 final class MainFlow: Flow {
     private let rootVC: UINavigationController = .init()
+    private let bag = DisposeBag()
     
     var root: any Presentable {
         return rootVC
@@ -20,16 +21,17 @@ final class MainFlow: Flow {
         guard let step = step as? PilotStep else { return .none }
         
         switch step {
-        case .mainIsRequired:
-            return .none
+        case .mainIsRequired(let meetingRooms):
+            return headToMain(meetingRooms)
+            
         default:
             return .none
         }
     }
     
-    private func headToMain() -> FlowContributors {
+    private func headToMain(_ meetingRooms: MeetingRooms) -> FlowContributors {
         let vm = MainViewModel()
-        let vc = MainViewController()
+        let vc = MainViewController(datasource: meetingRooms)
         vc.reactor = vm
         self.rootVC.setViewControllers([vc], animated: true)
         return .one(flowContributor: .contribute(withNextPresentable: vc,

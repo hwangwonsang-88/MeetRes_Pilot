@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 //struct EventData {
 //    let creator: String
 //    let creatorEmail: String   // 만든
@@ -15,6 +16,12 @@ import Foundation
 //    let description: String?
 //    let startTime: String
 //    let endTime: String
-//    let attendees: List<EventAttendee> = emptyList<EventAttendee>()
+//    let attendees: Array<EventAttendee> = []
 //    let eventId: String
 //}
+
+
+struct EventData {
+    let startTime: String
+    let endTime: String
+}

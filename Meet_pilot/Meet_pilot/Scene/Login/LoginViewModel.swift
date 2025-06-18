@@ -10,8 +10,6 @@ import ReactorKit
 import RxRelay
 import RxFlow
 
-// 로그인 -> 성공 -> 화면이동 실패 -> Alert
-
 final class LoginViewModel: Reactor, Stepper {
     var steps: RxRelay.PublishRelay<Step> = .init()
     var disposeBag = DisposeBag()
@@ -43,6 +41,10 @@ final class LoginViewModel: Reactor, Stepper {
                     .map { Mutation.signIn }
                     .asObservable()
                     .catch(handleError),
+                WGoogleCalendarService.shared.fetchMeetingRooms()
+                    .map { Mutation.fetchMeetingRooms($0) }
+                    .asObservable()
+                    .catch(handleError)
             ])
         }
     }
@@ -54,20 +56,11 @@ final class LoginViewModel: Reactor, Stepper {
             state.errorMsg = string
         case .signIn:
             state.isSignedIn = true
-        default:
-            break
+        case .fetchMeetingRooms(let meetingRooms):
+            steps.accept(PilotStep.loginIsCompleted(meetingRooms))
         }
         
         return state
-    }
-    
-    
-    func transform(state: Observable<State>) -> Observable<State> {
-        return state.do { state in
-            if state.isSignedIn {
-        
-            }
-        }
     }
 
     private func handleError(with error: any Error) -> Observable<Mutation> {

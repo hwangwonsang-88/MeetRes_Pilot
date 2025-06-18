@@ -17,6 +17,8 @@
 		C146381A2E01385B003F49B3 /* RxFlow in Frameworks */ = {isa = PBXBuildFile; productRef = C14638192E01385B003F49B3 /* RxFlow */; };
 		C146381D2E01386F003F49B3 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C146381C2E01386F003F49B3 /* GoogleSignIn */; };
 		C146381F2E01386F003F49B3 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C146381E2E01386F003F49B3 /* GoogleSignInSwift */; };
+		C15458DC2E02A9B600EAC919 /* Differentiator in Frameworks */ = {isa = PBXBuildFile; productRef = C15458DB2E02A9B600EAC919 /* Differentiator */; };
+		C15458DE2E02A9B600EAC919 /* RxDataSources in Frameworks */ = {isa = PBXBuildFile; productRef = C15458DD2E02A9B600EAC919 /* RxDataSources */; };
 		C167276B2DFA512B00E3632A /* Todo.md in Resources */ = {isa = PBXBuildFile; fileRef = C167276A2DFA512B00E3632A /* Todo.md */; };
 /* End PBXBuildFile section */
 
@@ -53,12 +55,14 @@
 			files = (
 				C146381A2E01385B003F49B3 /* RxFlow in Frameworks */,
 				C146380C2E01382B003F49B3 /* RxSwift in Frameworks */,
+				C15458DC2E02A9B600EAC919 /* Differentiator in Frameworks */,
 				C14638172E013852003F49B3 /* GoogleAPIClientForREST_Calendar in Frameworks */,
 				C146380A2E01382B003F49B3 /* RxRelay in Frameworks */,
 				C146380F2E013834003F49B3 /* ReactorKit in Frameworks */,
 				C146381F2E01386F003F49B3 /* GoogleSignInSwift in Frameworks */,
 				C14638122E01383C003F49B3 /* FSCalendar in Frameworks */,
 				C14638152E013852003F49B3 /* GoogleAPIClientForRESTCore in Frameworks */,
+				C15458DE2E02A9B600EAC919 /* RxDataSources in Frameworks */,
 				C14638082E01382B003F49B3 /* RxCocoa in Frameworks */,
 				C146381D2E01386F003F49B3 /* GoogleSignIn in Frameworks */,
 			);
@@ -122,6 +126,8 @@
 				C14638192E01385B003F49B3 /* RxFlow */,
 				C146381C2E01386F003F49B3 /* GoogleSignIn */,
 				C146381E2E01386F003F49B3 /* GoogleSignInSwift */,
+				C15458DB2E02A9B600EAC919 /* Differentiator */,
+				C15458DD2E02A9B600EAC919 /* RxDataSources */,
 			);
 			productName = Meet_pilot;
 			productReference = C1FD8D942DF97A18005711EC /* Meet_pilot.app */;
@@ -158,6 +164,7 @@
 				C14638132E013852003F49B3 /* XCRemoteSwiftPackageReference "google-api-objectivec-client-for-rest" */,
 				C14638182E01385B003F49B3 /* XCRemoteSwiftPackageReference "RxFlow" */,
 				C146381B2E01386F003F49B3 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				C15458DA2E02A9B600EAC919 /* XCRemoteSwiftPackageReference "RxDataSources" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C1FD8D952DF97A18005711EC /* Products */;
@@ -458,6 +465,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		C15458DA2E02A9B600EAC919 /* XCRemoteSwiftPackageReference "RxDataSources" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxDataSources";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -510,6 +525,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C146381B2E01386F003F49B3 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		C15458DB2E02A9B600EAC919 /* Differentiator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C15458DA2E02A9B600EAC919 /* XCRemoteSwiftPackageReference "RxDataSources" */;
+			productName = Differentiator;
+		};
+		C15458DD2E02A9B600EAC919 /* RxDataSources */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C15458DA2E02A9B600EAC919 /* XCRemoteSwiftPackageReference "RxDataSources" */;
+			productName = RxDataSources;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
