@@ -20,6 +20,18 @@ final class WGoogleCalendarService {
         core.authorizer = user.fetcherAuthorizer
     }
     
+    func fetchMeetingInfo(meetingRoomID: String, targetDate: Date) -> Single<Void> {
+        return Single.create { single in
+            let query = GTLRCalendarQuery_EventsList.query(withCalendarId: meetingRoomID)
+            
+            
+            return Disposables.create()
+        }
+    }
+    
+    
+//    private func calculateTargetWeek(with targetDate: Date) -> (
+    
     func fetchMeetingRooms() -> Single<MeetingRooms> {
         return Single.create { [weak self] single in
             print("start")

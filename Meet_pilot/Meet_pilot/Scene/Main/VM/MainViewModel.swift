@@ -33,7 +33,6 @@ final class MainViewModel: Reactor, Stepper {
         @Pulse var meetingSchedules = [TimeSlotSection]()
         
         init() {
-            // 시간대별로 섹션을 구성
             meetingSchedules = Self.generateTimeSlotSections()
         }
         
@@ -64,7 +63,6 @@ final class MainViewModel: Reactor, Stepper {
                 sections.append(TimeSlotSection(time: timeString, dayCells: dayCells))
                 currentTime = calendar.date(byAdding: .minute, value: 30, to: currentTime)!
             }
-            
             return sections
         }
     }
