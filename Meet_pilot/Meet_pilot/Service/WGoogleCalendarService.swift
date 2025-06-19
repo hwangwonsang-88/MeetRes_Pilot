@@ -20,18 +20,74 @@ final class WGoogleCalendarService {
         core.authorizer = user.fetcherAuthorizer
     }
     
-    func fetchMeetingInfo(meetingRoomID: String, targetDate: Date) -> Single<Void> {
-        return Single.create { single in
+    func makeReservation(with res: String) {
+        
+    }
+    
+    func fetchMeetingInfo(meetingRoomID: String, targetDate: Date) -> Single<[EventData]> {
+        return Single.create { [unowned self] single in
+            
+            let (monday, friday) = self.getMondayAndFriday(for: targetDate)
+            let calendar = Calendar.current
+
+            guard let monday9AM = calendar.date(byAdding: .hour, value: 9, to: calendar.startOfDay(for: monday)) else {
+                single(.failure(NSError(domain: "DateError", code: -1, userInfo: [NSLocalizedDescriptionKey: "월요일 오전 9시 계산에 실패했습니다."])))
+                return Disposables.create()
+            }
+
+            guard let friday6PM = calendar.date(byAdding: .hour, value: 18, to: calendar.startOfDay(for: friday)) else {
+                single(.failure(NSError(domain: "DateError", code: -1, userInfo: [NSLocalizedDescriptionKey: "금요일 오후 6시 계산에 실패했습니다."])))
+                return Disposables.create()
+            }
+            
             let query = GTLRCalendarQuery_EventsList.query(withCalendarId: meetingRoomID)
+            query.timeMin = GTLRDateTime(date: monday9AM)
+            query.timeMax = GTLRDateTime(date: friday6PM)
+            query.singleEvents = true
+            query.maxResults = 300
+            query.orderBy = "startTime"
             
-            
+            self.core.executeQuery(query) { ticket, result, error in
+                if let error = error {
+                    single(.failure(error))
+                    return
+                }
+                
+                if let event = result as? GTLRCalendar_Events,
+                   let items = event.items {
+                    let eventDataList = items.compactMap { gtlrEvent -> EventData? in
+                                           return EventData(from: gtlrEvent, meetingRoomName: meetingRoomID)
+                                       }
+                    
+                    single(.success(eventDataList))
+                }
+            }
             return Disposables.create()
         }
     }
     
     
-//    private func calculateTargetWeek(with targetDate: Date) -> (
+    private func getMondayAndFriday(for date: Date) -> (monday: Date, friday: Date) {
+        let calendar = Calendar.current
+        // 주의 시작을 월요일로 설정
+        var adjustedCalendar = calendar
+        adjustedCalendar.firstWeekday = 2 // 1: 일요일, 2: 월요일
+        
+        // 입력된 날짜의 주 시작일(월요일) 계산
+        let components = adjustedCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        guard let monday = adjustedCalendar.date(from: components) else {
+            fatalError("월요일 계산 실패")
+        }
+        
+        // 금요일은 월요일에서 4일 후
+        guard let friday = adjustedCalendar.date(byAdding: .day, value: 4, to: monday) else {
+            fatalError("금요일 계산 실패")
+        }
+        
+        return (monday, friday)
+    }
     
+
     func fetchMeetingRooms() -> Single<MeetingRooms> {
         return Single.create { [weak self] single in
             print("start")
@@ -58,7 +114,7 @@ final class WGoogleCalendarService {
                     
                     if calendarId.hasSuffix("@resource.calendar.google.com") ||
                         summary.contains("회의실") {
-                        return MeetingRoom(name: summary, calendarID: calendarId)
+                        return MeetingRoom(name: summary.getFirstParenthesesContent() ?? "", calendarID: calendarId)
                     }
                     return nil
                 }.sorted { $0.name < $1.name }
@@ -70,3 +126,4 @@ final class WGoogleCalendarService {
         }
     }
 }
+

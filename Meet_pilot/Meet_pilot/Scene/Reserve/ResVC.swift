@@ -14,7 +14,19 @@ struct ResVC: View {
     var body: some View {
         Form {
             Section {
-                TextField("입력", text: $text)
+                HStack {
+                    Text("호스트")
+                    TextField("fkljas", text: $text)
+                }
+                HStack {
+                    Text("호스트")
+                    TextField("fkljas", text: $text)
+                }
+                HStack {
+                    Text("호스트")
+                    TextField("fkljas", text: $text)
+                }
+                
             }
         }
     }

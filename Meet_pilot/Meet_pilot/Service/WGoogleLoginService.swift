@@ -31,7 +31,7 @@ final class WGoogleLoginService {
                 }
                 
                 let user = result.user
-                let auth = user.accessToken
+//                let auth = user.accessToken
                 
                 WGoogleCalendarService.shared.setAuth(by: user)
                 print("sign in done")

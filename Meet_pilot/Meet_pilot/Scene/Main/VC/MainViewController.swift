@@ -28,8 +28,8 @@ final class MainViewController: UIViewController, View {
     private let collectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 1      // 시간대 간 구분을 위한 최소 간격
-        layout.minimumInteritemSpacing = 1  // 요일 간 구분을 위한 최소 간격
+        layout.minimumLineSpacing = 0     // 시간대 간 구분을 위한 최소 간격
+        layout.minimumInteritemSpacing = 0  // 요일 간 구분을 위한 최소 간격
         let v = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return v
     }()
@@ -71,8 +71,7 @@ final class MainViewController: UIViewController, View {
             .map { [unowned self] in self.dataSource.data[$0.row] }
         
         let calendarStream = calendar.rx.tapDate
-            .do(onNext: { [weak self] _ in
-                guard let self = self else { return }
+            .do(onNext: { [unowned self] _ in
                 if self.calendar.scope == .month {
                     self.calendar.scope = .week
                 }
@@ -81,7 +80,6 @@ final class MainViewController: UIViewController, View {
         
         Observable.combineLatest(dropDownStream, calendarStream)
             .map { Reactor.Action.fetchMeetingSchedule(($0, $1)) }
-            .debug()
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
@@ -93,23 +91,60 @@ final class MainViewController: UIViewController, View {
             configureCell: { (dataSource, collectionView, indexPath, dayTimeSlot) in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TimeSlotCell", for: indexPath) as! TimeSlotCell
                 
+                // 일요일 경우엔 시간을 나타냄
                 if dayTimeSlot.dayIndex == 0 {
                     cell.configure(with: dayTimeSlot.time)
                 }
+                
+                if !dayTimeSlot.isAvailable {
+                    cell.contentView.backgroundColor = UIColor.init(hexCode: dayTimeSlot.color!).withAlphaComponent(0.3)
+                }
+                
+                // checkedSchedules에 포함된 셀인지 확인하여 checkmark 표시
+                let isChecked = reactor.currentState.checkedSchedules.contains { section in
+                    section.time == dayTimeSlot.time &&
+                    section.dayCells.contains { $0.dayIndex == dayTimeSlot.dayIndex }
+                }
+                
+                if isChecked {
+                    cell.showCheckMark()
+                } else {
+                    cell.hideCheckMark()
+                }
+                
                 return cell
             }
         )
         
-        reactor.state
-            .map { $0.meetingSchedules }
-            .map { schedules in
-                schedules.map { timeSlotSection in
-                    SectionModel(model: timeSlotSection.time, items: timeSlotSection.dayCells)
-                }
+        Observable.combineLatest(
+            reactor.state.map { $0.meetingSchedules },
+            reactor.pulse(\.$checkedSchedules)
+        )
+        .map { schedules, _ in
+            schedules.map { timeSlotSection in
+                SectionModel(model: timeSlotSection.time, items: timeSlotSection.dayCells)
             }
-            .bind(to: collectionView.rx.items(dataSource: dataSource))
+        }
+        .bind(to: collectionView.rx.items(dataSource: dataSource))
+        .disposed(by: disposeBag)
+        
+        let itemSelected = collectionView.rx.itemSelected
+            .map { [weak self] idxPath in
+                return (self?.collectionView.cellForItem(at: idxPath) as? TimeSlotCell, idxPath)
+                }
+            .filter { $0.0 != nil }
+            .filter { $0.0?.contentView.backgroundColor == .systemBackground }
+            .map { ($1.row, $1.section) }
+            .map { Reactor.Action.tapCell($0) }
+            .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        
+//        Observable.combineLatest(itemSelected, calendarStream, calendarStream)
+//            .map { Reactor.Action.tapCell(<#T##(Int, Int)#>) }
+//            .bind(to: reactor.action)
+//            .disposed(by: disposeBag)
+
         collectionView.rx.setDelegate(self)
             .disposed(by: disposeBag)
     }
@@ -125,24 +160,19 @@ final class MainViewController: UIViewController, View {
         let width: CGFloat = 150
         
         dropDownView.dataSource = dataSource.data.map(\.name)
-        
-        dropDownView.frame = CGRect(x: 0, y: startY, width: width, height: height)
+        dropDownView.frame = CGRect(x: 8, y: startY, width: width, height: height)
         view.insertSubview(dropDownView, belowSubview: calendar)
-        startY += height
+        startY += height + 8
     }
     
     private func configureContainerView(height: CGFloat) {
-        let v = UIView()
         
-        v.frame = CGRect(x: 0,
+        collectionView.frame = CGRect(x: 0,
                          y: height,
                          width: view.bounds.width,
                          height: view.bounds.height - height)
-        v.backgroundColor = .black
-        view.insertSubview(v, belowSubview: calendar)
         
-        collectionView.frame = v.frame
-        view.addSubview(collectionView)
+        view.insertSubview(collectionView, belowSubview: calendar)
     }
     
     private func configureCalendar() {
@@ -284,18 +314,10 @@ final class MainViewController: UIViewController, View {
 extension MainViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let totalWidth = collectionView.frame.width
-        let spacing: CGFloat = 6 // (7-1) * minimumInteritemSpacing
+        let spacing: CGFloat = 0 // (7-1) * minimumInteritemSpacing
         let availableWidth = totalWidth - spacing
         let width = availableWidth / 7  // 7개 열 (일~토)
         let height: CGFloat = 50 // 30분 단위 높이
         return CGSize(width: width, height: height)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 1 // 시간대별 행 간격
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 1 // 요일별 열 간격
     }
 }

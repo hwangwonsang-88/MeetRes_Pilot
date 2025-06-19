@@ -59,7 +59,6 @@ final class LoginViewModel: Reactor, Stepper {
         case .fetchMeetingRooms(let meetingRooms):
             steps.accept(PilotStep.loginIsCompleted(meetingRooms))
         }
-        
         return state
     }
 
