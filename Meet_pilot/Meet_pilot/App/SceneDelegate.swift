@@ -19,21 +19,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: scene)
         
-        let appFlow = AppFlow(window: window!)
-        let appStepper = AppStepper()
-        
-        appCoordinator.coordinate(flow: appFlow, with: appStepper)
-        
-        
-//        let temp = MainViewController(datasource: MeetingRooms(data: [MeetingRoom(name: "임시", calendarID: "ㅇㅁㄴㄹ"),
-//                                                                      MeetingRoom(name: "임시2", calendarID: "ㅇㅁㄴㄹ"),
-//                                                                      MeetingRoom(name: "임시3", calendarID: "ㅇㅁㄴㄹ")]))
+//        let appFlow = AppFlow(window: window!)
+//        let appStepper = AppStepper()
 //        
-//        temp.reactor = MainViewModel()
-//        
+//        appCoordinator.coordinate(flow: appFlow, with: appStepper)
+        
+        
+        let temp = MainViewController(datasource: MeetingRooms(data: [MeetingRoom(name: "임시", calendarID: "ㅇㅁㄴㄹ"),
+                                                                      MeetingRoom(name: "임시2", calendarID: "ㅇㅁㄴㄹ"),
+                                                                      MeetingRoom(name: "임시3", calendarID: "ㅇㅁㄴㄹ")]))
+        
+        temp.reactor = MainViewModel()
+        
+        let temp2 = CreateReservationViewController()
+        window?.rootViewController = UINavigationController(rootViewController: temp2)
 //        window?.rootViewController = UINavigationController(rootViewController: temp)
-        
-        
         window?.makeKeyAndVisible()
     }
 

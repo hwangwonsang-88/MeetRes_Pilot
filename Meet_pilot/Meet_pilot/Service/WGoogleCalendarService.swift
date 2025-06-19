@@ -83,7 +83,6 @@ final class WGoogleCalendarService {
         guard let friday = adjustedCalendar.date(byAdding: .day, value: 4, to: monday) else {
             fatalError("금요일 계산 실패")
         }
-        
         return (monday, friday)
     }
     

@@ -18,6 +18,7 @@ final class MainViewModel: Reactor, Stepper {
         case tapResBtn
         case tapCell((Int, Int))
         case fetchMeetingSchedule((MeetingRoom, Date))
+        case makeReservation(MeetingRoom)
     }
     
     enum Mutation {

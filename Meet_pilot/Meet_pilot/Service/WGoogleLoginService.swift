@@ -19,6 +19,7 @@ final class WGoogleLoginService {
     
     func singIn() -> Single<Void> {
         return Single.create { single in
+            print("sign")
             GIDSignIn.sharedInstance.signIn(withPresenting: UIApplication.shared.windows.first!.rootViewController!,
                                             hint: nil,
                                             additionalScopes: [kGTLRAuthScopeCalendarReadonly]) { result, error in

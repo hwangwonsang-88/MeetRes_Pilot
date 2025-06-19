@@ -25,6 +25,10 @@ final class MainViewController: UIViewController, View {
     private let dropDownButton = DropDownButton(title: "회의실", option: .title)
     private lazy var dropDownView = DropDownView(anchorView: dropDownButton)
     
+    private lazy var resBtn: UIBarButtonItem = {
+        return UIBarButtonItem(title: "예약", style: .plain, target: self, action: nil)
+    }()
+    
     private let collectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -62,7 +66,6 @@ final class MainViewController: UIViewController, View {
     }
     
     func bind(reactor: MainViewModel) {
-        
         let dropDownStream = dropDownView.rx.didSelectRow
             .do(onNext: { [unowned self] idxPath in
                 let title = self.dropDownView.dataSource[idxPath.row]
@@ -80,6 +83,11 @@ final class MainViewController: UIViewController, View {
         
         Observable.combineLatest(dropDownStream, calendarStream)
             .map { Reactor.Action.fetchMeetingSchedule(($0, $1)) }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+        
+        Observable.combineLatest(dropDownStream, resBtn.rx.tap)
+            .map { room, _ in Reactor.Action.makeReservation(room) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
@@ -129,10 +137,21 @@ final class MainViewController: UIViewController, View {
         .disposed(by: disposeBag)
         
         let itemSelected = collectionView.rx.itemSelected
+            .filter{ $0.item != 0 }
             .map { [weak self] idxPath in
                 return (self?.collectionView.cellForItem(at: idxPath) as? TimeSlotCell, idxPath)
                 }
             .filter { $0.0 != nil }
+            .do(onNext: { [weak self] (cell, idxPath) in
+                // eventdata가 있는 셀이면 ReserveView를 present
+                guard let self = self else { return }
+                let timeSlotSection = reactor.currentState.meetingSchedules[idxPath.section]
+                let dayTimeSlot = timeSlotSection.dayCells[idxPath.row]
+                
+                if let eventData = dayTimeSlot.event {
+                    self.presentReserveView(with: eventData)
+                }
+            })
             .filter { $0.0?.contentView.backgroundColor == .systemBackground }
             .map { ($1.row, $1.section) }
             .map { Reactor.Action.tapCell($0) }
@@ -140,7 +159,9 @@ final class MainViewController: UIViewController, View {
             .disposed(by: disposeBag)
         
         
-//        Observable.combineLatest(itemSelected, calendarStream, calendarStream)
+        
+        
+//        Observable.combineLatest(calendarStream, calendarStream)
 //            .map { Reactor.Action.tapCell(<#T##(Int, Int)#>) }
 //            .bind(to: reactor.action)
 //            .disposed(by: disposeBag)
@@ -154,8 +175,6 @@ final class MainViewController: UIViewController, View {
     }
     
     private func configureDropDown(startY: inout CGFloat) {
-        // calendar .scope 모드 아래에배치
-        
         let height: CGFloat = 44
         let width: CGFloat = 150
         
@@ -166,7 +185,6 @@ final class MainViewController: UIViewController, View {
     }
     
     private func configureContainerView(height: CGFloat) {
-        
         collectionView.frame = CGRect(x: 0,
                          y: height,
                          width: view.bounds.width,
@@ -226,8 +244,6 @@ final class MainViewController: UIViewController, View {
     }
     
     private func configureResBtn() {
-        
-        let resBtn = UIBarButtonItem(title: "예약", style: .plain, target: self, action: nil)
         navigationItem.rightBarButtonItem = resBtn
     }
     
@@ -308,6 +324,13 @@ final class MainViewController: UIViewController, View {
             self.dimmingView.isHidden = true
             self.sideMenuisOn = false
         }
+    }
+    
+    private func presentReserveView(with eventData: EventData) {
+        let reserveVC = ReserveViewController(eventData: eventData)
+        let navController = UINavigationController(rootViewController: reserveVC)
+        navController.modalPresentationStyle = .pageSheet
+        present(navController, animated: true)
     }
 }
 

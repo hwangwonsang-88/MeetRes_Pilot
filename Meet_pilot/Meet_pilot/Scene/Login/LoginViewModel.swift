@@ -39,13 +39,12 @@ final class LoginViewModel: Reactor, Stepper {
             return Observable.concat([
                 WGoogleLoginService.shared.singIn()
                     .map { Mutation.signIn }
-                    .asObservable()
-                    .catch(handleError),
+                    .asObservable(),
                 WGoogleCalendarService.shared.fetchMeetingRooms()
                     .map { Mutation.fetchMeetingRooms($0) }
                     .asObservable()
-                    .catch(handleError)
             ])
+            .catch(handleError)
         }
     }
     
