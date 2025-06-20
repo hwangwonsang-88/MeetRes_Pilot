@@ -35,8 +35,10 @@ extension Reactive where Base: FSCalendar {
       var tapDate: Observable<Date> {
           return delegate.methodInvoked(#selector(FSCalendarDelegate.calendar(_:didSelect:at:)))
               .map { parameters in
-                  // parameters[1]이 선택된 Date 객체
-                  return parameters[1] as! Date
+                  let selectedDate = parameters[1] as! Date
+                  let calendar = Calendar.current
+                  let components = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+                  return calendar.date(from: components) ?? selectedDate
               }
       }
     

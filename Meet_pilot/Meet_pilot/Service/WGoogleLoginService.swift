@@ -22,7 +22,7 @@ final class WGoogleLoginService {
             print("sign")
             GIDSignIn.sharedInstance.signIn(withPresenting: UIApplication.shared.windows.first!.rootViewController!,
                                             hint: nil,
-                                            additionalScopes: [kGTLRAuthScopeCalendarReadonly]) { result, error in
+                                            additionalScopes: [kGTLRAuthScopeCalendar]) { result, error in
                 if error != nil {
                     return single(.failure(error!))
                 }

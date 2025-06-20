@@ -79,15 +79,30 @@ final class MainViewController: UIViewController, View {
                     self.calendar.scope = .week
                 }
             })
-            .startWith(.now)
+            .startWith(Date.yesterDay())
         
         Observable.combineLatest(dropDownStream, calendarStream)
             .map { Reactor.Action.fetchMeetingSchedule(($0, $1)) }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
-        Observable.combineLatest(dropDownStream, resBtn.rx.tap)
-            .map { room, _ in Reactor.Action.makeReservation(room) }
+        
+        // Calendar Tap Date -> 하루 더해야함. 이상함...
+        // 현재 탭한 날짜, 확인중인 미팅룸 정보
+        let sourceStream = Observable.combineLatest(calendarStream, dropDownStream)
+
+        // 2. 버튼 탭을 "트리거"로 사용하여, 탭하는 순간에만 sourceStream의 최신값을 가져옵니다.
+        resBtn.rx.tap
+            .withLatestFrom(sourceStream) // 버튼이 탭될 때, sourceStream의 가장 마지막 값을 가져옴
+            .map { calendar, dropdown in
+                // 이 시점의 calendar는 calendarStream의 최신값, dropdown은 dropDownStream의 최신값입니다.
+                // combineLatest로 묶인 결과 (calendar, dropdown) 튜플이 그대로 전달됩니다.
+                return (calendar.nextDay, dropdown)
+            }
+            .map { nextDay, dropdown in
+                // 위에서 변환된 (nextDay, dropdown) 튜플을 받아 액션으로 변환합니다.
+                return Reactor.Action.makeReservation(dropdown, nextDay)
+            }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
@@ -158,14 +173,6 @@ final class MainViewController: UIViewController, View {
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
-        
-        
-        
-//        Observable.combineLatest(calendarStream, calendarStream)
-//            .map { Reactor.Action.tapCell(<#T##(Int, Int)#>) }
-//            .bind(to: reactor.action)
-//            .disposed(by: disposeBag)
-
         collectionView.rx.setDelegate(self)
             .disposed(by: disposeBag)
     }
