@@ -8,13 +8,16 @@
 import UIKit
 import RxFlow
 import RxRelay
+import RxSwift
 
-final class ReserveViewController: UIViewController {
-
+final class ReserveViewController: UIViewController, Stepper {
+    
+    var steps: PublishRelay<any Step> = .init()
     
     private let eventData: EventData
     private let scrollView = UIScrollView()
     private let contentView = UIView()
+    private let disposeBag = DisposeBag()
     
     init(eventData: EventData) {
         self.eventData = eventData
@@ -42,11 +45,37 @@ final class ReserveViewController: UIViewController {
             action: #selector(closeButtonTapped)
         )
         
+        if let currentUser = WGoogleLoginService.shared.getCurrentUser(),
+           currentUser == eventData.creatorEmail {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "취소",
+                                                               style: .done,
+                                                               target: self,
+                                                               action: #selector(cancelMeeting))
+        }
+        
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
+    }
+    
+    @objc
+    private func cancelMeeting() {
+        WGoogleCalendarService.shared
+            .cancelReservation(with: self.eventData)
+            .asObservable()
+            .withUnretained(self)
+            .subscribe(onError: { _ in
+                self.steps.accept(PilotStep.dismiss(self.eventData))
+            },onCompleted: {
+                self.steps.accept(PilotStep.dismiss(self.eventData))
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    @objc private func closeButtonTapped() {
+        steps.accept(PilotStep.dismiss(nil))
     }
     
     private func createInfoRow(title: String, content: String) -> UIStackView {
@@ -109,9 +138,5 @@ final class ReserveViewController: UIViewController {
     
     private func setupData() {
         // 데이터는 이미 setupLayout에서 설정됨
-    }
-    
-    @objc private func closeButtonTapped() {
-        dismiss(animated: true)
     }
 }

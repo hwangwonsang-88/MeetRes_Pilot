@@ -19,11 +19,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: scene)
         
+//        window?.rootViewController = CreateReservationViewController(reservationModel: .toPreView())
+//
         let appFlow = AppFlow(window: window!)
         let appStepper = AppStepper()
         
         appCoordinator.coordinate(flow: appFlow, with: appStepper)
-        
+//        
         
 //        let temp = MainViewController(datasource: MeetingRooms(data: [MeetingRoom(name: "임시", calendarID: "ㅇㅁㄴㄹ"),
 //                                                                      MeetingRoom(name: "임시2", calendarID: "ㅇㅁㄴㄹ"),

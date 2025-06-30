@@ -58,4 +58,8 @@ final class WGoogleLoginService {
             return Disposables.create()
         }
     }
+    
+    func getCurrentUser() -> String? {
+        return GIDSignIn.sharedInstance.currentUser?.profile?.email
+    }
 }

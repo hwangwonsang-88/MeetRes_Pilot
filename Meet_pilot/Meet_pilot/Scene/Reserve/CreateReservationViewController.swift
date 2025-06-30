@@ -6,14 +6,23 @@
 //
 
 import UIKit
+import RxSwift
+import RxRelay
+import RxFlow
 
-final class CreateReservationViewController: UIViewController {
+final class CreateReservationViewController: UIViewController, Stepper {
+    
+    var steps: PublishRelay<any Step> = .init()
+    
+    private let disposeBag = DisposeBag()
+    private let reservationModel: ReservationModel
     
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let mainStackView = UIStackView()
     
     // Form components
+    private let mainTextField = UITextField()
     private let hostTextField = UITextField()
     private let locationTextField = UITextField()
     private let titleTextField = UITextField()
@@ -31,11 +40,22 @@ final class CreateReservationViewController: UIViewController {
     // Attendee tags
     private var attendeeTags: [String] = []
     
+    init(reservationModel: ReservationModel) {
+        self.reservationModel = reservationModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupLayout()
         setupActions()
+        setUIData()
     }
     
     private func setupUI() {
@@ -49,7 +69,7 @@ final class CreateReservationViewController: UIViewController {
             target: self,
             action: #selector(backButtonTapped)
         )
-        
+                
         // Scroll view setup
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -68,8 +88,8 @@ final class CreateReservationViewController: UIViewController {
     
     private func setupFormComponents() {
 // Title field
-        let titleRow = createFormRow(title: "제목", textField: titleTextField)
-        titleTextField.placeholder = "TITLE!!"
+        let titleRow = createFormRow(title: "제목", textField: mainTextField)
+        titleTextField.placeholder = "goodie!!"
         
         // Date field
         let dateRow = createFormRow(title: "Date", textField: dateTextField)
@@ -320,7 +340,7 @@ final class CreateReservationViewController: UIViewController {
         descriptionTextView.layer.cornerRadius = 8
         descriptionTextView.font = .systemFont(ofSize: 16)
         descriptionTextView.textContainerInset = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
-        descriptionTextView.text = "가나다라\n마바사아\n자차카타\n파하"
+        descriptionTextView.text = "ios 테스트 입니다."
         descriptionTextView.translatesAutoresizingMaskIntoConstraints = false
         
         container.addSubview(titleLabel)
@@ -378,17 +398,77 @@ final class CreateReservationViewController: UIViewController {
         roomDropdown.addTarget(self, action: #selector(roomDropdownTapped), for: .touchUpInside)
     }
     
-    @objc private func backButtonTapped() {
+    private func setUIData() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        let dateString = formatter.string(from: reservationModel.startTime)
+        dateTextField.text = dateString
+        dateTextField.isUserInteractionEnabled = false
+        
+        let formatter2 = DateFormatter()
+        formatter2.dateFormat = "HH:mm"
+        let startTimeString = formatter2.string(from: reservationModel.startTime)
+        let endTimeString = formatter2.string(from: reservationModel.endTime)
+        
+        startTimeTextField.text = startTimeString
+        endTimeTextField.text = endTimeString
+        
+        startTimeTextField.isUserInteractionEnabled = false
+        endTimeTextField.isUserInteractionEnabled = false
+        
+        titleTextField.text = reservationModel.meetingRoomName
+        titleTextField.isUserInteractionEnabled = false
+    }
+    
+    @objc
+    private func backButtonTapped() {
         navigationController?.popViewController(animated: true)
     }
     
-    @objc private func reserveButtonTapped() {
-        // Handle reservation logic
-        print("예약 버튼 탭됨")
+    @objc
+    private func reserveButtonTapped() {
+        var currentModel = self.reservationModel
+        currentModel.title = mainTextField.text
+        currentModel.description = descriptionTextView.text
+        WGoogleCalendarService.shared.makeReservation(with: currentModel)
+            .subscribe(onSuccess: { [weak self] event in
+                self?.steps.accept(PilotStep.reserVationIsCompleted(event))
+            }, onFailure: { error in
+                print(error)
+            })
+            .disposed(by: disposeBag)
     }
     
-    @objc private func roomDropdownTapped() {
+    @objc
+    private func roomDropdownTapped() {
         // Handle room selection
         print("회의실 선택")
     }
 }
+
+
+//struct PreView: PreviewProvider {
+//    static var previews: some View {
+//        CreateReservationViewController(reservationModel: .toPreView()).toPreview()
+//    }
+//}
+//
+//
+//#if DEBUG
+//extension UIViewController {
+//    private struct Preview: UIViewControllerRepresentable {
+//            let viewController: UIViewController
+//
+//            func makeUIViewController(context: Context) -> UIViewController {
+//                return viewController
+//            }
+//
+//            func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+//            }
+//        }
+//
+//        func toPreview() -> some View {
+//            Preview(viewController: self)
+//        }
+//}
+//#endif

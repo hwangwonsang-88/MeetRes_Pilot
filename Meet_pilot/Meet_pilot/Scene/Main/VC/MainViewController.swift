@@ -65,6 +65,14 @@ final class MainViewController: UIViewController, View {
         configureResBtn()
     }
     
+    func sendEvent(_ eventData: EventData) {
+        self.reactor?.action.onNext(.removeEvent(eventData))
+    }
+    
+    func sendAddEvent(_ data: EventData) {
+        self.reactor?.action.onNext(.addEvent(data))
+    }
+    
     func bind(reactor: MainViewModel) {
         let dropDownStream = dropDownView.rx.didSelectRow
             .do(onNext: { [unowned self] idxPath in
@@ -89,18 +97,14 @@ final class MainViewController: UIViewController, View {
         
         // Calendar Tap Date -> 하루 더해야함. 이상함...
         // 현재 탭한 날짜, 확인중인 미팅룸 정보
-        let sourceStream = Observable.combineLatest(calendarStream, dropDownStream)
-
-        // 2. 버튼 탭을 "트리거"로 사용하여, 탭하는 순간에만 sourceStream의 최신값을 가져옵니다.
+        let sourceStream = Observable.combineLatest(calendarStream, dropDownStream, collectionView.rx.itemSelected)
+        
         resBtn.rx.tap
             .withLatestFrom(sourceStream) // 버튼이 탭될 때, sourceStream의 가장 마지막 값을 가져옴
-            .map { calendar, dropdown in
-                // 이 시점의 calendar는 calendarStream의 최신값, dropdown은 dropDownStream의 최신값입니다.
-                // combineLatest로 묶인 결과 (calendar, dropdown) 튜플이 그대로 전달됩니다.
+            .map { calendar, dropdown, _ in
                 return (calendar.nextDay, dropdown)
             }
             .map { nextDay, dropdown in
-                // 위에서 변환된 (nextDay, dropdown) 튜플을 받아 액션으로 변환합니다.
                 return Reactor.Action.makeReservation(dropdown, nextDay)
             }
             .bind(to: reactor.action)
@@ -155,24 +159,29 @@ final class MainViewController: UIViewController, View {
             .filter{ $0.item != 0 }
             .map { [weak self] idxPath in
                 return (self?.collectionView.cellForItem(at: idxPath) as? TimeSlotCell, idxPath)
-                }
+            }
             .filter { $0.0 != nil }
-            .do(onNext: { [weak self] (cell, idxPath) in
-                // eventdata가 있는 셀이면 ReserveView를 present
-                guard let self = self else { return }
-                let timeSlotSection = reactor.currentState.meetingSchedules[idxPath.section]
-                let dayTimeSlot = timeSlotSection.dayCells[idxPath.row]
-                
-                if let eventData = dayTimeSlot.event {
-                    self.presentReserveView(with: eventData)
-                }
-            })
+            .share()
+        
+        let tapCellAction = itemSelected
             .filter { $0.0?.contentView.backgroundColor == .systemBackground }
             .map { ($1.row, $1.section) }
             .map { Reactor.Action.tapCell($0) }
+        
+        let tapMeetingAction = itemSelected
+            .filter { $0.0?.contentView.backgroundColor != .systemBackground }
+            .map { (cell, idxPath) in
+                let timeSlotSection = reactor.currentState.meetingSchedules[idxPath.section]
+                let dayTimeSlot = timeSlotSection.dayCells[idxPath.row]
+                return dayTimeSlot.event
+            }
+            .compactMap{ $0 }
+            .map { Reactor.Action.tapMeeting($0) }
+
+        Observable.merge(tapCellAction,tapMeetingAction)
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
-        
+
         collectionView.rx.setDelegate(self)
             .disposed(by: disposeBag)
     }
@@ -193,9 +202,10 @@ final class MainViewController: UIViewController, View {
     
     private func configureContainerView(height: CGFloat) {
         collectionView.frame = CGRect(x: 0,
-                         y: height,
-                         width: view.bounds.width,
-                         height: view.bounds.height - height)
+                                      y: height,
+                                      width: view.bounds.width,
+                                      height: view.bounds.height - height)
+        collectionView.showsVerticalScrollIndicator = false
         
         view.insertSubview(collectionView, belowSubview: calendar)
     }

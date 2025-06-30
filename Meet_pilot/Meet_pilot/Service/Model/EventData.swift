@@ -64,3 +64,4 @@ struct EventData {
         self.meetingRoomName = meetingRoomName
     }
 }
+

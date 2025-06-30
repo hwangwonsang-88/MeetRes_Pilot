@@ -20,6 +20,23 @@ final class WGoogleCalendarService {
         core.authorizer = user.fetcherAuthorizer
     }
     
+    func cancelReservation(with model: EventData) -> Single<Void> {
+        return Single.create { [weak self] single in
+            print("cancel start")
+            let query = GTLRCalendarQuery_EventsDelete.query(withCalendarId: "primary", eventId: model.eventID)
+            self?.core.executeQuery(query) { ticket, _, error in
+                if let _ = error {
+                    print("cancel ERROR")
+                    single(.failure(NSError(domain: "Cancel Error", code: 100001)))
+                    return
+                }
+                single(.success(()))
+                print("cancel DONE")
+            }
+            return Disposables.create()
+        }
+    }
+    
     func makeReservation(with model: ReservationModel) -> Single<EventData> {
         return Single.create { [unowned self] single in
             print("res start")

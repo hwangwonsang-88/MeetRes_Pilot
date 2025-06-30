@@ -19,6 +19,9 @@ final class MainViewModel: Reactor, Stepper {
         case tapCell((Int, Int))
         case fetchMeetingSchedule((MeetingRoom, Date))
         case makeReservation(MeetingRoom, Date)
+        case tapMeeting(EventData)
+        case removeEvent(EventData)
+        case addEvent(EventData)
     }
     
     enum Mutation {
@@ -26,7 +29,9 @@ final class MainViewModel: Reactor, Stepper {
         case setCheckedPeriod(DayTimeSlot)
         case setAlertMesg(String)
         case setLoading(Bool)
+        case setNewEvent(EventData)
         case makeReservation(EventData)
+        case removeEvent(EventData)
     }
     
     struct State {
@@ -40,7 +45,7 @@ final class MainViewModel: Reactor, Stepper {
         init() {
             meetingSchedules = Self.generateTimeSlotSections()
         }
-        
+    
         static func generateTimeSlotSections() -> [TimeSlotSection] {
             var sections: [TimeSlotSection] = []
             let calendar = Calendar.current
@@ -74,8 +79,32 @@ final class MainViewModel: Reactor, Stepper {
     let steps: PublishRelay<any Step> = .init()
     let initialState: State = State()
     
+    func transform(action: Observable<Action>) -> Observable<Action> {
+        return action
+            .do { [weak self] action in
+                guard let self = self else { return }
+                switch action {
+                case .tapMeeting(let eventData):
+                    self.steps.accept(PilotStep.detailViewIsRequired(eventData))
+                case .makeReservation(let room, let date):
+                    if currentState.checkedSchedules.isEmpty {
+                        break
+                    }
+                    var resModel = createReservationModel(date: date, meetingRoomID: room.calendarID)
+                    resModel.meetingRoomName = room.name
+                    steps.accept(PilotStep.reservationVCIsRequired(resModel))
+                default:
+                    break
+                }
+            }
+    }
+    
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
+            
+        case .removeEvent(let data):
+            return Observable.just(.removeEvent(data))
+            
         case .fetchMeetingSchedule((let meetingRoom, let date)):
             return WGoogleCalendarService.shared.fetchMeetingInfo(meetingRoomID: meetingRoom.calendarID,
                                                                   targetDate: date)
@@ -88,17 +117,21 @@ final class MainViewModel: Reactor, Stepper {
             let dayTimeSlot = timeSlotSection.dayCells[row]
             return Observable.just(.setCheckedPeriod(dayTimeSlot))
             
-        case .makeReservation(let meetingRoom, let date):
-            var resModel = createReservationModel(date: date, meetingRoomID: meetingRoom.calendarID)
-            resModel.title = "ios 테스트입니다."
-            resModel.description = "ios 테스트입니다."
+        case .addEvent(let d):
+            return Observable.just(.setNewEvent(d))
             
-            return Observable.concat([
-                WGoogleCalendarService.shared.makeReservation(with: resModel)
-                    .map { Mutation.makeReservation($0) }
-                    .asObservable(),
-            ])
-            .catch(handleError)
+//        case .makeReservation(let meetingRoom, let date):
+//            if currentState.checkedSchedules.isEmpty {
+//                return .empty()
+//            }
+//            var resModel = createReservationModel(date: date, meetingRoomID: meetingRoom.calendarID)
+//            return Observable.concat([
+//                WGoogleCalendarService.shared.makeReservation(with: resModel)
+//                    .map { Mutation.makeReservation($0) }
+//                    .asObservable(),
+//            ])
+//            .catch(handleError)
+                        
         default:
             return Observable.empty()
         }
@@ -138,16 +171,39 @@ final class MainViewModel: Reactor, Stepper {
                 newState.checkedSchedules.append(checkedSection)
             }
             
-        case .makeReservation(let event):
+        case .setNewEvent(let d):
             newState.checkedSchedules = []
             var renewedEvents = newState.googleEvents
-            renewedEvents.append(event)
+            renewedEvents.append(d)
             newState.googleEvents = renewedEvents
             newState.meetingSchedules = updateSlots(with: renewedEvents, on: newState.meetingSchedules)
+            break
+
+        case .removeEvent(let d):
+            let new = newState.googleEvents.filter { $0.eventID != d.eventID }
+            newState.googleEvents = new
+            newState.meetingSchedules = removeSlots(with: d, from: newState.meetingSchedules)
+        default:
+            break
         }
+    
         return newState
     }
     
+    private func removeSlots(with event: EventData, from sections: [TimeSlotSection]) -> [TimeSlotSection] {
+        var updatedSections = sections
+        for (sectionIdx, section) in updatedSections.enumerated() {
+            for (cellIdx, cell) in section.dayCells.enumerated() {
+                if cell.event?.eventID == event.eventID {
+                    updatedSections[sectionIdx].dayCells[cellIdx].isAvailable = true
+                    updatedSections[sectionIdx].dayCells[cellIdx].event = nil
+                    updatedSections[sectionIdx].dayCells[cellIdx].color = nil
+                }
+            }
+        }
+        return updatedSections
+    }
+
     private func updateSlots(with events: [EventData], on sections: [TimeSlotSection]) -> [TimeSlotSection] {
         var updatedSections = sections
         let calendar = Calendar.current
@@ -206,7 +262,7 @@ final class MainViewModel: Reactor, Stepper {
     }
     
     private func createReservationModel(date: Date, meetingRoomID: String) -> ReservationModel {
-        var checked = currentState.checkedSchedules.sorted{ $0.time < $1.time}
+        let checked = currentState.checkedSchedules.sorted{ $0.time < $1.time}
         let week = getDateForWeekday(from: date, targetWeekday: checked[0].dayCells[0].dayIndex)!
         let start = addTime(timeString: checked.first!.time, target: week)!
         if checked.count == 1 {

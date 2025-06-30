@@ -8,10 +8,13 @@
 import RxFlow
 
 enum PilotStep: Step {
-    case dismiss
+    case dismiss(EventData?)
     
     case loginIsRequired
     case loginIsCompleted(MeetingRooms)
     
     case mainIsRequired(MeetingRooms)
+    case detailViewIsRequired(EventData)
+    case reservationVCIsRequired(ReservationModel)
+    case reserVationIsCompleted(EventData)
 }
